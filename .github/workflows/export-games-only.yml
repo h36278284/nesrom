@@ -45,24 +45,23 @@ jobs:
                           h.update(chunk)
                   w.writerow([p.as_posix(), p.stat().st_size, h.hexdigest()])
 
-          # Greedy size balancing into exactly 6 independent ZIP files.
           bins = [[] for _ in range(6)]
           sizes = [0] * 6
           for p in sorted(files, key=lambda x: x.stat().st_size, reverse=True):
-              i = min(range(6), key=lambda j: sizes[j])
-              bins[i].append(p)
-              sizes[i] += p.stat().st_size
+              j = min(range(6), key=lambda k: sizes[k])
+              bins[j].append(p)
+              sizes[j] += p.stat().st_size
 
           out = Path('chunks')
           out.mkdir()
-          for i, members in enumerate(bins, 1):
-              zpath = out / f'nesrom_games_8f7abad_part{i:02d}_of_06.zip'
+          for part_no, members in enumerate(bins, 1):
+              zpath = out / f'nesrom_games_8f7abad_part{part_no:02d}_of_06.zip'
               with zipfile.ZipFile(zpath, 'w', compression=zipfile.ZIP_STORED, allowZip64=True) as z:
                   for p in sorted(members):
                       z.write(p, arcname=p.as_posix())
-              print(f'PART_{i:02d}_FILES={len(members)}')
-              print(f'PART_{i:02d}_RAW_BYTES={sizes[i]}')
-              print(f'PART_{i:02d}_ZIP_BYTES={zpath.stat().st_size}')
+              print(f'PART_{part_no:02d}_FILES={len(members)}')
+              print(f'PART_{part_no:02d}_RAW_BYTES={sizes[part_no-1]}')
+              print(f'PART_{part_no:02d}_ZIP_BYTES={zpath.stat().st_size}')
 
           print(f'GAME_FILE_COUNT={len(files)}')
           print(f'GAME_TOTAL_BYTES={total}')
